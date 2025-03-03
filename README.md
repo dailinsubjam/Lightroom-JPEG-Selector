@@ -13,5 +13,7 @@ P.S. You still need to import the original JPEGs when you import your RAW files.
 # TODOs
 Mostly done...But there are still some TODOs
 - [ ] Update instructions
-- [ ] Add parameterable arguments like dates, filter way, catalog path etc.
+- [ ] Add parameterable arguments like dates, catalog path etc.
+- [ ] Support video format?
+- [ ] Support other filter?
 - [ ] Cleanup
