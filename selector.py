@@ -3,7 +3,15 @@ import shutil # shutil.move
 import sqlite3
 import os
 
-
+# transfer the name from .NEF file to .JPG file
+def get_jpg_name(filename):
+    # If the filename contains "-", then only keep the part before "-" 
+    # or else keep the part before the last "."
+    # and add ".JPG" to the end
+    if "-" in filename:
+        return filename.split("-")[0] + ".JPG"
+    else:
+        return filename.split(".")[0] + ".JPG"
 
 def read_lightroom_ratings(catalog_path):
     """
@@ -47,6 +55,8 @@ def read_lightroom_ratings(catalog_path):
     except Exception as e:
         print(f"Error: {e}")
 
+    # get the list of .JPG we want
+    jpg_files = []
     
     try:
         # Query to get file paths and their ratings
@@ -73,16 +83,26 @@ def read_lightroom_ratings(catalog_path):
         
         for row in results:
             image_id, pick, filename = row
-            print(f"Image ID: {image_id}, Pick: {pick}, Filename: {filename}")
+             # get the name of the .JPG file
+            jpg_name = get_jpg_name(filename)
+            print(f"Image ID: {image_id}, Pick: {pick}, Filename: {filename}, JPG Name: {jpg_name}")
+            jpg_files.append(jpg_name)
             
     except sqlite3.Error as e:
         print(f"Database error: {e}")
     finally:
         conn.close()
-        
 
+    return jpg_files
 
+def move_jpg_files(jpg_folder_path, new_folder_path, jpg_files):
+    # create the new folder if it doesn't exist
+    if not os.path.exists(new_folder_path):
+        os.makedirs(new_folder_path)
 
+    # copy the .JPG files to the new folder
+    for jpg_file in jpg_files:
+        shutil.copy(jpg_folder_path + "/" + jpg_file, new_folder_path + "/" + jpg_file)
 
 if __name__ == "__main__":
     # Replace with path to your Lightroom catalog
@@ -92,5 +112,11 @@ if __name__ == "__main__":
         print("Catalog file not found. Please check the path.")
         exit()
 
-    read_lightroom_ratings(catalog_path)
+    jpg_files = read_lightroom_ratings(catalog_path)
+    print(f"Total .JPG files: {len(jpg_files)}")
+
+    # find the .JPG files in the given folder and copy them to the new folder
+    jpg_folder_path = "/Users/sishanlong/Pictures/2024.10@Yellowstone"
+    new_folder_path = jpg_folder_path + "/selected_JPG"
+    move_jpg_files(jpg_folder_path, new_folder_path, jpg_files)
     
