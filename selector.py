@@ -75,8 +75,9 @@ def read_lightroom_ratings(catalog_path):
                 Adobe_images.rootFile = AgLibraryFile.id_local
             WHERE 
                 Adobe_images.pick = 1
-                AND Adobe_images.captureTime BETWEEN '2024-09-30' AND '2024-10-05';
+                AND Adobe_images.captureTime BETWEEN '2025-03-21' AND '2025-03-23';
         """
+        # Update the date here
         
         cursor.execute(query)
         results = cursor.fetchall()
@@ -116,7 +117,8 @@ if __name__ == "__main__":
     print(f"Total .JPG files: {len(jpg_files)}")
 
     # find the .JPG files in the given folder and copy them to the new folder
-    jpg_folder_path = "/Users/sishanlong/Pictures/2024.10@Yellowstone"
+    # Update the path here
+    jpg_folder_path = "/Users/sishanlong/Pictures/2025.03.22@EspressoBoat"
     new_folder_path = jpg_folder_path + "/selected_JPG"
     move_jpg_files(jpg_folder_path, new_folder_path, jpg_files)
     
