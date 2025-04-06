@@ -1,7 +1,27 @@
 import shutil # shutil.move
-
 import sqlite3
 import os
+import argparse
+from dataclasses import dataclass
+
+@dataclass
+class ProcessArgs:
+    catalog_path: str
+    jpg_folder_path: str
+    new_folder_path: str
+    start_date: str
+    end_date: str
+
+# parse the command line arguments
+def parse_args():
+    parser = argparse.ArgumentParser(description='Process Lightroom catalog.')
+    parser.add_argument('--catalog', type=str, default="/Users/sishanlong/Pictures/Lightroom/Lightroom Catalog-v13-5.lrcat", help='Path to Lightroom catalog')
+    parser.add_argument('--jpg_folder_path', type=str, default="/Users/sishanlong/Pictures/2025.03@EarlySpringLathamSt", help='Path to the folder containing the .JPG files')
+    parser.add_argument('--new_folder_path', type=str, default="/Users/sishanlong/Pictures/2025.03@EarlySpringLathamSt/selected_JPG", help='Path to the new folder')
+    parser.add_argument('--start_date', type=str, default="2025-03-25", help='Start date')
+    parser.add_argument('--end_date', type=str, default="2025-04-06", help='End date')
+    return parser.parse_args()
+
 
 # transfer the name from .NEF file to .JPG file
 def get_jpg_name(filename):
@@ -13,7 +33,7 @@ def get_jpg_name(filename):
     else:
         return filename.split(".")[0] + ".JPG"
 
-def read_lightroom_ratings(catalog_path):
+def read_lightroom_ratings(catalog_path, start_date, end_date):
     """
     Read image ratings directly from Lightroom catalog
     
@@ -57,7 +77,7 @@ def read_lightroom_ratings(catalog_path):
 
     # get the list of .JPG we want
     jpg_files = []
-    
+
     try:
         # Query to get file paths and their ratings
         # Adobe_images table contains the basic image info
@@ -75,13 +95,13 @@ def read_lightroom_ratings(catalog_path):
                 Adobe_images.rootFile = AgLibraryFile.id_local
             WHERE 
                 Adobe_images.pick = 1
-                AND Adobe_images.captureTime BETWEEN '2025-03-21' AND '2025-03-23';
+                AND Adobe_images.captureTime BETWEEN ? AND ?;
         """
-        # Update the date here
+
         
-        cursor.execute(query)
+        cursor.execute(query, (start_date, end_date))
         results = cursor.fetchall()
-        
+
         for row in results:
             image_id, pick, filename = row
              # get the name of the .JPG file
@@ -106,19 +126,16 @@ def move_jpg_files(jpg_folder_path, new_folder_path, jpg_files):
         shutil.copy(jpg_folder_path + "/" + jpg_file, new_folder_path + "/" + jpg_file)
 
 if __name__ == "__main__":
-    # Replace with path to your Lightroom catalog
-    catalog_path = "/Users/sishanlong/Pictures/Lightroom/Lightroom Catalog-v13-5.lrcat"
+    args = parse_args()
+    catalog_path = args.catalog
 
     if not os.path.exists(catalog_path):
         print("Catalog file not found. Please check the path.")
         exit()
 
-    jpg_files = read_lightroom_ratings(catalog_path)
+    jpg_files = read_lightroom_ratings(catalog_path, args.start_date, args.end_date)
     print(f"Total .JPG files: {len(jpg_files)}")
 
     # find the .JPG files in the given folder and copy them to the new folder
-    # Update the path here
-    jpg_folder_path = "/Users/sishanlong/Pictures/2025.03.22@EspressoBoat"
-    new_folder_path = jpg_folder_path + "/selected_JPG"
-    move_jpg_files(jpg_folder_path, new_folder_path, jpg_files)
+    move_jpg_files(args.jpg_folder_path, args.new_folder_path, jpg_files)
     
